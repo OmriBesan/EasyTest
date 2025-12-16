@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "531335500910",
+    "project_id": "easydine-aedf8",
+    "storage_bucket": "easydine-aedf8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:531335500910:android:40644b5a35e930acf8027f",
+        "android_client_info": {
+          "package_name": "com.easydine.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXDEL4txyoOepECL-RmgYKMAC7p9A-U_s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
