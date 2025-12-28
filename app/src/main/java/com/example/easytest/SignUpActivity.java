@@ -24,7 +24,8 @@ import java.util.*;
 
 public class SignUpActivity extends AppCompatActivity {
 
-    private EditText etEmail, etPassword;
+    private EditText etEmail, etPassword, etPasswordAgain;
+    private EditText etPhoneNumber;
     private Button btnSignUp;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -41,6 +42,8 @@ public class SignUpActivity extends AppCompatActivity {
         // 2. Connect Views
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
+        etPasswordAgain = findViewById(R.id.etPasswordAgain);
+        etPhoneNumber = findViewById(R.id.etPhoneNumber);
         btnSignUp = findViewById(R.id.btnSignUp);
 
         // 3. Set Button Listener
@@ -49,9 +52,18 @@ public class SignUpActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String email = etEmail.getText().toString();
                 String password = etPassword.getText().toString();
+                String PasswordAgain = etPasswordAgain.getText().toString();
+                String PhoneNumber = etPhoneNumber.getText().toString();
 
-                if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
+                if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)
+                        || TextUtils.isEmpty(PasswordAgain) || TextUtils.isEmpty(PhoneNumber)
+                ) {
                     Toast.makeText(SignUpActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if(!TextUtils.equals(etPassword.getText().toString() , etPasswordAgain.getText().toString()))
+                {
+                    Toast.makeText(SignUpActivity.this, "Passwords does`nt match", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -61,20 +73,13 @@ public class SignUpActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
-                                    /*
-                                    // Success
-                                    Toast.makeText(SignUpActivity.this, "Account Created!", Toast.LENGTH_SHORT).show();
-                                    // Go to Main Activity
-                                    Intent intent = new Intent(SignUpActivity.this, MainActivity.class);
-                                    startActivity(intent);
-                                    finish();
-                                    */
                                     // --- NEW CODE STARTS HERE ---
                                     // 3. Create a User Object to save
                                     String userId = mAuth.getCurrentUser().getUid();
                                     Map<String, Object> userMap = new HashMap<>();
                                     userMap.put("email", email);
-                                    userMap.put("role", "customer"); // meaningful for your app later!
+                                    userMap.put("phoneNumber" , etPhoneNumber);
+                                    userMap.put("role", "customer");
 
                                     // 4. Save to Firestore: collection "users", document name = userId
                                     db.collection("users").document(userId)
