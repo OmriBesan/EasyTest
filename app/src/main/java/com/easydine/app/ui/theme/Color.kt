@@ -1,4 +1,4 @@
-package com.example.easytest.ui.theme
+package com.easydine.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

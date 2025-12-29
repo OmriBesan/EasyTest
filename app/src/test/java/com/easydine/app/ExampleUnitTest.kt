@@ -1,4 +1,4 @@
-package com.example.easytest
+package com.easydine.app
 
 import org.junit.Test
 

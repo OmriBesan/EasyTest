@@ -1,4 +1,4 @@
-package com.example.easytest; // Make sure this matches your actual package name
+package com.easydine.app; // Make sure this matches your actual package name
 
 import android.content.Intent;
 import android.os.Bundle;

@@ -6,13 +6,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.easytest"
+    namespace = "com.easydine.app"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.example.easytest"
+        applicationId = "com.easydine.app"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

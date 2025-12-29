@@ -1,6 +1,6 @@
-package com.example.easytest.data;
+package com.easydine.app.data;
 
-import com.example.easytest.data.model.LoggedInUser;
+import com.easydine.app.data.model.LoggedInUser;
 
 /**
  * Class that requests authentication and user information from the remote data source and
