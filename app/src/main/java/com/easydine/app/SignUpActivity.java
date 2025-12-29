@@ -79,7 +79,7 @@ public class SignUpActivity extends AppCompatActivity {
                                     String userId = mAuth.getCurrentUser().getUid();
                                     Map<String, Object> userMap = new HashMap<>();
                                     userMap.put("email", email);
-                                    userMap.put("phoneNumber" , etPhoneNumber);
+                                    userMap.put("phoneNumber" , PhoneNumber);
                                     userMap.put("role", "customer");
 
                                     // 4. Save to Firestore: collection "users", document name = userId
