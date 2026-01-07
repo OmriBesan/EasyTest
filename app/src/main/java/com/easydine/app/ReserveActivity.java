@@ -1,4 +1,4 @@
-package com.app.easydine.ui.demo;
+package com.easydine.app;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.easydine.app.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;

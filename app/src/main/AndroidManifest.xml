@@ -31,9 +31,14 @@
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         </activity>
+        <activity
+            android:name=".RestaurantListActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        </activity>
 
-        <activity android:name="com.app.easydine.ui.demo.RestaurantDetailsActivity" />
-        <activity android:name="com.app.easydine.ui.demo.ReserveActivity" />
+        <activity android:name=".RestaurantDetailsActivity" />
+        <activity android:name=".ReserveActivity" />
 
     </application>
 
