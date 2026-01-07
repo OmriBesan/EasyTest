@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EasyTest">
         <activity
-            android:name="com.app.easydine.ui.demo.RestaurantListActivity"
+            android:name=".ui.restaurant.RestaurantListActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -19,8 +19,8 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.app.easydine.ui.demo.RestaurantDetailsActivity" />
-        <activity android:name="com.app.easydine.ui.demo.ReserveActivity" />
+        <activity android:name=".ui.restaurant.RestaurantDetailsActivity" />
+        <activity android:name=".ui.booking.ReserveActivity" />
 
     </application>
 
