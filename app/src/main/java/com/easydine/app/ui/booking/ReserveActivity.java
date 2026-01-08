@@ -2,6 +2,7 @@ package com.easydine.app.ui.booking;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
@@ -13,11 +14,11 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.easydine.app.data.model.Booking;
 import com.easydine.app.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
@@ -198,6 +199,7 @@ public class ReserveActivity extends AppCompatActivity {
             transaction.update(availRef, "slots", newSlots);
 
             // Create booking
+            /*
             DocumentReference bookingRef = db.collection("bookings").document();
             Map<String, Object> booking = new HashMap<>();
             booking.put("restaurantId", restaurantId);
@@ -208,10 +210,39 @@ public class ReserveActivity extends AppCompatActivity {
             booking.put("createdAt", FieldValue.serverTimestamp());
 
             transaction.set(bookingRef, booking);
+            */
+            // Create booking
+            DocumentReference bookingRef = db.collection("bookings").document();
+            String newBookingId = bookingRef.getId(); // Get the ID before saving!
+
+            // Create the Object instead of a Map
+            Booking newBooking = new Booking(
+                    newBookingId,   // Save the ID inside the document too (Very useful!)
+                    userId,
+                    restaurantId,
+                    selectedDateId,
+                    selectedTime,
+                    partySize
+            );
+
+            // Save the Object
+            transaction.set(bookingRef, newBooking);
 
             return bookingRef.getId();
         }).addOnSuccessListener(bookingId -> {
-            toast("Booked! ID: " + bookingId);
+            // 1. Show success message
+            toast("Booked successfully!");
+
+            // 2. Create Intent to go to My Reservations
+            // Note: Make sure to import com.easydine.app.ui.booking.MyReservationsActivity;
+            Intent intent = new Intent(ReserveActivity.this, MyReservationsActivity.class);
+
+            // Optional: Clear the back stack so pressing "Back" takes them to Home, not back to the booking form
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            startActivity(intent);
+
+            // 3. Close this activity
             finish();
         }).addOnFailureListener(e -> {
             String msg = e.getMessage() == null ? "Booking failed" : e.getMessage();
