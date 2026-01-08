@@ -1,4 +1,4 @@
-package com.easydine.app;
+package com.easydine.app.data.model;
 
 public class Restaurant {
     public String id;

@@ -1,4 +1,4 @@
-package com.easydine.app;
+package com.easydine.app.ui.restaurant;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +7,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.easydine.app.R;
+import com.easydine.app.data.model.Restaurant;
 
 import java.util.List;
 

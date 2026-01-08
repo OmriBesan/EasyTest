@@ -1,4 +1,4 @@
-package com.easydine.app; // Make sure this matches your actual package name
+package com.easydine.app.ui.login; // Make sure this matches your actual package name
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,6 +12,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.easydine.app.MainActivity;
+import com.easydine.app.R;
+import com.easydine.app.ui.restaurant.RestaurantListActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;

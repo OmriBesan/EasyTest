@@ -1,4 +1,4 @@
-package com.easydine.app;
+package com.easydine.app.ui.restaurant;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +9,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.easydine.app.R;
+import com.easydine.app.ui.booking.ReserveActivity;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Objects;
