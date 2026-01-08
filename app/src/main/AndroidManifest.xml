@@ -12,12 +12,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EasyTest">
         <activity
-            android:name=".SignUpActivity"
+            android:name=".ui.login.SignUpActivity"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"
             />
         <activity
-            android:name=".LoginActivity"
+            android:name=".ui.login.LoginActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" >
             <intent-filter>
@@ -32,13 +32,13 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         </activity>
         <activity
-            android:name=".RestaurantListActivity"
+            android:name=".ui.restaurant.RestaurantListActivity"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         </activity>
 
-        <activity android:name=".RestaurantDetailsActivity" />
-        <activity android:name=".ReserveActivity" />
+        <activity android:name=".ui.restaurant.RestaurantDetailsActivity" />
+        <activity android:name=".ui.booking.ReserveActivity" />
 
     </application>
 
