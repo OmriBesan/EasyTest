@@ -22,27 +22,45 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main); // You can make this layout just a ProgressBar
 
-        mAuth = FirebaseAuth.getInstance();
-        btnLogout = findViewById(R.id.btnLogout);
-        tvWelcome = findViewById(R.id.tvWelcome);
-
-        // Optional: Show the user's email on the screen
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            tvWelcome.setText("Welcome, " + user.getEmail());
-        }
 
-        // Handle Logout
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FirebaseAuth.getInstance().signOut();
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish(); // Close MainActivity so they can't go back
-            }
-        });
+        if (user == null) {
+            // 1. Not Logged In -> Go to Login
+            sendToLogin();
+        } else {
+            // 2. Logged In -> Check if Owner or Customer
+            checkUserType(user);
+        }
+    }
+
+    private void checkUserType(FirebaseUser user) {
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("restaurants")
+                .whereEqualTo("ownerId", user.getUid())
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        // --- IS OWNER ---
+                        com.google.firebase.firestore.DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
+                        Intent intent = new Intent(this, com.easydine.app.ui.owner.ManageScheduleActivity.class);
+                        intent.putExtra("RESTAURANT_ID", doc.getId());
+                        startActivity(intent);
+                    } else {
+                        // --- IS CUSTOMER (Regular User) ---
+                        // This is the new part! Send them to the List immediately.
+                        Intent intent = new Intent(this, com.easydine.app.ui.restaurant.RestaurantListActivity.class);
+                        startActivity(intent);
+                    }
+                    finish(); // Close MainActivity so "Back" button exits the app, not back here.
+                });
+    }
+
+    private void sendToLogin() {
+        Intent intent = new Intent(this, com.easydine.app.ui.login.LoginActivity.class); // Check your package path!
+        startActivity(intent);
+        finish();
     }
 }

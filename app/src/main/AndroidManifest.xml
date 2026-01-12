@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EasyTest">
         <activity
+            android:name=".ui.owner.ManageScheduleActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.booking.MyReservationsActivity"
             android:exported="false" />
         <activity
@@ -31,11 +34,10 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".ui.restaurant.RestaurantListActivity"
-            android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+            android:exported="false" />
         <activity android:name=".ui.restaurant.RestaurantDetailsActivity" />
         <activity android:name=".ui.booking.ReserveActivity" />
     </application>

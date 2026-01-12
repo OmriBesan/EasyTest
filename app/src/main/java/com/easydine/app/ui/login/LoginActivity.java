@@ -38,9 +38,33 @@ public class LoginActivity extends AppCompatActivity {
         // Check if user is already logged in
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();
+            // The user is logged in. Now we check: Are they an Owner or a Customer?
+            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    .collection("restaurants")
+                    .whereEqualTo("userID", currentUser.getUid()) // Check if they own a restaurant
+                    .get()
+                    .addOnSuccessListener(querySnapshot -> {
+                        Intent intent;
+
+                        if (!querySnapshot.isEmpty()) {
+                            // CASE 1: THEY ARE AN OWNER (Found a restaurant with their ID)
+                            // Get the Restaurant ID from the document we found
+                            String myRestaurantId = querySnapshot.getDocuments().get(0).getId();
+
+                            intent = new Intent(LoginActivity.this, com.easydine.app.ui.owner.ManageScheduleActivity.class);
+                            intent.putExtra("RESTAURANT_ID", myRestaurantId);
+                        } else {
+                            // CASE 2: THEY ARE A REGULAR CUSTOMER (No restaurant found)
+                            intent = new Intent(LoginActivity.this, com.easydine.app.ui.restaurant.RestaurantListActivity.class);
+                        }
+
+                        // Clear the back stack so they can't press "Back" to return to Login
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish(); // Close LoginActivity
+                    });
+
+            return; // Stop the rest of the code from running while we redirect
         }
 
         // Connect Views

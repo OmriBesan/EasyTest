@@ -8,11 +8,17 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuItem;
+import androidx.annotation.NonNull;
 
 import com.easydine.app.R;
 import com.easydine.app.data.model.Restaurant;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.auth.FirebaseAuth;
+
+import com.easydine.app.ui.login.LoginActivity;
 
 import java.util.ArrayList;
 import java.util.List;
