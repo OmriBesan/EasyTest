@@ -5,6 +5,9 @@ public class Restaurant {
     public String name;
     public String address;
     public String description;
+    private double latitude;
+    private double longitude;
+    private float distanceToUser = 0.0f ;
 
     public Restaurant() {}
 
@@ -14,4 +17,13 @@ public class Restaurant {
         this.address = address;
         this.description = description;
     }
+
+    public double getLatitude() { return latitude; }
+    public double getLongitude() { return longitude; }
+
+    public float getDistanceToUser() { return distanceToUser; }
+    public void setDistanceToUser(float distance) { this.distanceToUser = distance; }
+
+    public void setLatitude(double latitude) { this.latitude = latitude; }
+    public void setLongitude(double longitude) { this.longitude = longitude; }
 }
