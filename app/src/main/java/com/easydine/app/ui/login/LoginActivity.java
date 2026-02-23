@@ -1,25 +1,38 @@
 package com.easydine.app.ui.login; // Make sure this matches your actual package name
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.easydine.app.MainActivity;
 import com.easydine.app.R;
 import com.easydine.app.ui.restaurant.RestaurantListActivity;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -28,6 +41,25 @@ public class LoginActivity extends AppCompatActivity {
     private TextView tvGoToSignUp;
     private FirebaseAuth mAuth;
 
+    private GoogleSignInClient mGoogleSignInClient; //for Google Login
+
+    //Google Sign-In Launcher (Listens for the Google account popup to close)
+    private final ActivityResultLauncher<Intent> googleSignInLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                    try {
+                        GoogleSignInAccount account = task.getResult(ApiException.class);
+                        firebaseAuthWithGoogle(account.getIdToken());
+                    } catch (ApiException e) {
+                        Log.w(TAG, "Google sign in failed", e);
+                        Toast.makeText(this, "Google sign in failed", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+    );
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,82 +67,96 @@ public class LoginActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-        // Check if user is already logged in
+        // check if the user is already logged in
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            // The user is logged in. Now we check: Are they an Owner or a Customer?
-            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            FirebaseFirestore.getInstance()
                     .collection("restaurants")
-                    .whereEqualTo("userID", currentUser.getUid()) // Check if they own a restaurant
+                    .whereEqualTo("userID", currentUser.getUid())
                     .get()
                     .addOnSuccessListener(querySnapshot -> {
                         Intent intent;
-
                         if (!querySnapshot.isEmpty()) {
-                            // CASE 1: THEY ARE AN OWNER (Found a restaurant with their ID)
-                            // Get the Restaurant ID from the document we found
+                            // CASE 1: THEY ARE AN OWNER
                             String myRestaurantId = querySnapshot.getDocuments().get(0).getId();
-
                             intent = new Intent(LoginActivity.this, com.easydine.app.ui.owner.ManageScheduleActivity.class);
                             intent.putExtra("RESTAURANT_ID", myRestaurantId);
                         } else {
-                            // CASE 2: THEY ARE A REGULAR CUSTOMER (No restaurant found)
-                            intent = new Intent(LoginActivity.this, com.easydine.app.ui.restaurant.RestaurantListActivity.class);
+                            // CASE 2: THEY ARE A REGULAR CUSTOMER
+                            intent = new Intent(LoginActivity.this, RestaurantListActivity.class);
                         }
-
-                        // Clear the back stack so they can't press "Back" to return to Login
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
-                        finish(); // Close LoginActivity
+                        finish();
                     });
-
-            return; // Stop the rest of the code from running while we redirect
+            return;
         }
 
-        // Connect Views
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
         tvGoToSignUp = findViewById(R.id.tvGoToSignUp);
 
-        // Go to Sign Up Page
-        tvGoToSignUp.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
-                startActivity(intent);
-            }
+        //GOOGLE SIGN-IN SETUP
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken("531335500910-66bt87u76ulli2a3verl0see5ln2557j.apps.googleusercontent.com")
+                .requestEmail()
+                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        // --- ADDED: GOOGLE BUTTON CLICK LISTENER ---
+        // MAKE SURE YOU HAVE A BUTTON WITH id "@+id/btnGoogleSignIn" IN YOUR XML!
+        findViewById(R.id.btnGoogleSignIn).setOnClickListener(v -> {
+            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+            googleSignInLauncher.launch(signInIntent);
         });
 
-        // Handle Login
-        btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String email = etEmail.getText().toString();
-                String password = etPassword.getText().toString();
-
-                if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
-                    Toast.makeText(LoginActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                mAuth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    // Success
-                                    Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                                    Intent intent = new Intent(LoginActivity.this, RestaurantListActivity.class);
-                                    startActivity(intent);
-                                    finish();
-                                } else {
-                                    // Failure
-                                    Toast.makeText(LoginActivity.this, "Authentication Failed.", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
-            }
+        //login using email/password
+        tvGoToSignUp.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
+            startActivity(intent);
         });
+
+        btnLogin.setOnClickListener(v -> {
+            String email = etEmail.getText().toString();
+            String password = etPassword.getText().toString();
+
+            if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
+                Toast.makeText(LoginActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            mAuth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(LoginActivity.this, RestaurantListActivity.class);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            Toast.makeText(LoginActivity.this, "Authentication Failed.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        });
+    }
+
+    private void firebaseAuthWithGoogle(String idToken) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Sign in success!
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        String name = user != null ? user.getDisplayName() : "User";
+                        Toast.makeText(this, "Welcome " + name, Toast.LENGTH_SHORT).show();
+
+                        // Go to the main restaurant list
+                        startActivity(new Intent(LoginActivity.this, RestaurantListActivity.class));
+                        finish();
+                    } else {
+                        Log.w(TAG, "Firebase Auth Failed", task.getException());
+                        Toast.makeText(this, "Authentication Failed", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

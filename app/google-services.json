@@ -12,7 +12,20 @@
           "package_name": "com.easydine.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "531335500910-9plq7mll2n7cl4c6jst6hlb63pv7pe9t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.easydine.app",
+            "certificate_hash": "afb47f4d664b0316bbc2d9b928e3c4a4fa8265dd"
+          }
+        },
+        {
+          "client_id": "531335500910-66bt87u76ulli2a3verl0see5ln2557j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCXDEL4txyoOepECL-RmgYKMAC7p9A-U_s"
@@ -20,7 +33,41 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "531335500910-66bt87u76ulli2a3verl0see5ln2557j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:531335500910:android:7046f3b11e7a0b6ff8027f",
+        "android_client_info": {
+          "package_name": "com.example.easytest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "531335500910-66bt87u76ulli2a3verl0see5ln2557j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXDEL4txyoOepECL-RmgYKMAC7p9A-U_s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "531335500910-66bt87u76ulli2a3verl0see5ln2557j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

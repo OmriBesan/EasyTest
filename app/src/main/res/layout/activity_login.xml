@@ -42,6 +42,12 @@
         android:layout_height="wrap_content"
         android:text="Login" />
 
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/btnGoogleSignIn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
+
     <TextView
         android:id="@+id/tvGoToSignUp"
         android:layout_width="wrap_content"
