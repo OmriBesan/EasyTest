@@ -7,11 +7,13 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 
 import com.easydine.app.ui.login.LoginActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main); // You can make this layout just a ProgressBar
 
+        FirebaseMessaging.getInstance().getToken().addOnSuccessListener(token -> android.util.Log.d("FCM_TOKEN", token));
+
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseUser user = mAuth.getCurrentUser();
 
@@ -33,6 +37,24 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // 2. Logged In -> Check if Owner or Customer
             checkUserType(user);
+        }
+
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken().addOnSuccessListener(token ->
+        {String uid = com.google.firebase.auth.FirebaseAuth.getInstance().getUid();
+        if (uid != null)
+            {
+                com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                        .collection("users").document(uid).update("fcmtoken",token);
+            }
+        });
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS},
+                        1001
+                );
+            }
         }
     }
 
