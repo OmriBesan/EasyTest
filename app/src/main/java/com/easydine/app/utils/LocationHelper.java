@@ -10,7 +10,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-public class LocationHelper {
+public class  LocationHelper {
 
     private FusedLocationProviderClient fusedLocationClient;
     private Activity activity;

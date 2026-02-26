@@ -9,10 +9,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.easydine.app" />
+                  <option name="mobileSdkAppId" value="1:531335500910:android:40644b5a35e930acf8027f" />
+                  <option name="projectId" value="easydine-aedf8" />
+                  <option name="projectNumber" value="531335500910" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

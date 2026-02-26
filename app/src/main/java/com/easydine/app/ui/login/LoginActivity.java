@@ -37,7 +37,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etEmail, etPassword;
-    private Button btnLogin;
+    private com.google.android.material.button.MaterialButton btnLogin;
     private TextView tvGoToSignUp;
     private FirebaseAuth mAuth;
 
@@ -94,8 +94,8 @@ public class LoginActivity extends AppCompatActivity {
 
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
-        btnLogin = findViewById(R.id.btnLogin);
-        tvGoToSignUp = findViewById(R.id.tvGoToSignUp);
+        btnLogin = findViewById(R.id.btnSignIn);
+        tvGoToSignUp = findViewById(R.id.tvSignUp);
 
         //GOOGLE SIGN-IN SETUP
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -106,16 +106,13 @@ public class LoginActivity extends AppCompatActivity {
 
         // --- ADDED: GOOGLE BUTTON CLICK LISTENER ---
         // MAKE SURE YOU HAVE A BUTTON WITH id "@+id/btnGoogleSignIn" IN YOUR XML!
-        findViewById(R.id.btnGoogleSignIn).setOnClickListener(v -> {
+        findViewById(R.id.btnGoogle).setOnClickListener(v -> {
             Intent signInIntent = mGoogleSignInClient.getSignInIntent();
             googleSignInLauncher.launch(signInIntent);
         });
 
         //login using email/password
-        tvGoToSignUp.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
-            startActivity(intent);
-        });
+        makeSignUpClickable(tvGoToSignUp);
 
         btnLogin.setOnClickListener(v -> {
             String email = etEmail.getText().toString();
@@ -138,6 +135,37 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     });
         });
+    }
+    private void makeSignUpClickable(TextView tv) {
+        String full = "Don’t have an account? Sign Up";
+        String clickable = "Sign Up";
+
+        int start = full.indexOf(clickable);
+        int end = start + clickable.length();
+
+        android.text.SpannableString ss = new android.text.SpannableString(full);
+
+        // color "Sign Up"
+        ss.setSpan(new android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#0F172A")),
+                start, end, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        // clickable only on "Sign Up"
+        ss.setSpan(new android.text.style.ClickableSpan() {
+            @Override
+            public void onClick(android.view.View widget) {
+                startActivity(new Intent(LoginActivity.this, SignUpActivity.class));
+            }
+
+            @Override
+            public void updateDrawState(android.text.TextPaint ds) {
+                super.updateDrawState(ds);
+                ds.setUnderlineText(false);
+            }
+        }, start, end, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        tv.setText(ss);
+        tv.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
+        tv.setHighlightColor(android.graphics.Color.TRANSPARENT);
     }
 
     private void firebaseAuthWithGoogle(String idToken) {

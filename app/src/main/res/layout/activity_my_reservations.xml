@@ -6,13 +6,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F5F5F5"
-    tools:context=".MyReservationsActivity">
+    tools:context=".ui.booking.MyReservationsActivity">
 
     <TextView
         android:id="@+id/headerTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@color/white"
+        android:background="@color/ed_lemon_chiffon"
         android:padding="20dp"
         android:text="My Reservations"
         android:textColor="@android:color/black"

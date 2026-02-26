@@ -1,5 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <resources>
-    <style name="Theme.EasyTest" parent="Theme.AppCompat.Light.NoActionBar" />
+
+    <style name="Theme.EasyTest" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Brand colors -->
+        <item name="colorPrimary">@color/ed_dark_green</item>
+        <item name="colorPrimaryVariant">@color/ed_dark_green</item>
+        <item name="colorOnPrimary">@color/ed_text_on_dark</item>
+
+        <item name="colorSecondary">@color/ed_yale_blue</item>
+        <item name="colorSecondaryVariant">@color/ed_yale_blue</item>
+        <item name="colorOnSecondary">@color/ed_text_on_dark</item>
+
+        <item name="android:statusBarColor">@color/ed_lemon_chiffon</item>
+        <item name="android:navigationBarColor">@color/ed_lemon_chiffon</item>
+
+        <!-- Default component styles -->
+        <item name="materialButtonStyle">@style/Widget.EasyDine.Button</item>
+        <item name="textInputStyle">@style/Widget.EasyDine.TextInputLayout</item>
+    </style>
+
+    <!-- Rounded, branded MaterialButton -->
+    <style name="Widget.EasyDine.Button" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/ed_dark_green</item>
+        <item name="android:textColor">@color/ed_text_on_dark</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- TextInputLayout default look -->
+    <style name="Widget.EasyDine.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/ed_dark_green</item>
+        <item name="hintTextColor">@color/ed_dark_green</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+    </style>
+
 </resources>

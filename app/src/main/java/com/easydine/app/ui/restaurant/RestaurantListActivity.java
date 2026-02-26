@@ -1,159 +1,299 @@
 package com.easydine.app.ui.restaurant;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import android.view.Menu;
-import android.view.MenuItem;
-import androidx.annotation.NonNull;
 
 import com.easydine.app.R;
 import com.easydine.app.data.model.Restaurant;
-import com.easydine.app.utils.LocationHelper;
+import com.easydine.app.ui.booking.MyReservationsActivity;
+import com.easydine.app.ui.location.LocationPermissionActivity;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.auth.FirebaseAuth;
-
-import com.easydine.app.ui.login.LoginActivity;
+import com.google.firebase.firestore.GeoPoint;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class RestaurantListActivity extends AppCompatActivity {
 
-    private static final String TAG = "RestaurantListActivity";
-    private final List<Restaurant> restaurants = new ArrayList<>();
+    private static final String PREFS = "easydine_prefs";
+
+    private RecyclerView rvRestaurants;
     private RestaurantAdapter adapter;
+
+    private final List<Restaurant> allRestaurants = new ArrayList<>();
+    private final List<Restaurant> shownRestaurants = new ArrayList<>();
+
+    private SharedPreferences sp;
+
+    // Filters
+    @Nullable private String selectedMood = null; // null => no mood filter
+    private String searchQuery = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_restaurant_list);
 
-        RecyclerView rv = findViewById(R.id.rvRestaurants);
-        rv.setLayoutManager(new LinearLayoutManager(this));
+        sp = getSharedPreferences(PREFS, MODE_PRIVATE);
 
-        /*
-        // 1. Initialize our helper
-        LocationHelper locationHelper = new LocationHelper(this);
+        // If user never set location, send them to location flow
+        if (!sp.getBoolean("location_set", false)) {
+            startActivity(new Intent(this, LocationPermissionActivity.class));
+            finish();
+            return;
+        }
 
-        // 2. Get Location and Sort
-        locationHelper.getCurrentLocation(userLocation -> {
-            if (userLocation != null) {
+        // UI
+        TextView tvLocation = findViewById(R.id.tvLocation);
+        TextInputEditText etSearch = findViewById(R.id.etSearch);
+        rvRestaurants = findViewById(R.id.rvRestaurants);
 
-                // Loop through your list of restaurants
-                for (Restaurant restaurant : restaurants) {
+        // Show saved location name
+        String locationName = sp.getString("location_name", "");
+        if (locationName != null && !locationName.trim().isEmpty()) {
+            tvLocation.setText(locationName);
+        }
 
-                    // Create a temporary Location object for the restaurant
-                    Location restaurantLocation = new Location("");
-                    restaurantLocation.setLatitude(restaurant.getLatitude());
-                    restaurantLocation.setLongitude(restaurant.getLongitude());
+        // Recycler
+        rvRestaurants.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new RestaurantAdapter(this,shownRestaurants, restaurant -> {
+            Intent i = new Intent(this, RestaurantDetailsActivity.class);
+            i.putExtra("restaurantId", restaurant.getId()); // keep your existing key
+            startActivity(i);
+            loadFavoritesIntoAdapter();
+        });
+        rvRestaurants.setAdapter(adapter);
 
-                    // MAGIC: Calculate distance in meters!
-                    float distanceInMeters = userLocation.distanceTo(restaurantLocation);
+        // Search filter
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
 
-                    // Save it to the object (convert to KM if you prefer: distanceInMeters / 1000f)
-                    restaurant.setDistanceToUser(distanceInMeters);
-                }
-
-                // 3. SORT THE LIST (Closest to Farthest)
-                Collections.sort(restaurants, new Comparator<Restaurant>() {
-                    @Override
-                    public int compare(Restaurant r1, Restaurant r2) {
-                        // This compares the distances and orders them smallest to largest
-                        return Float.compare(r1.getDistanceToUser(), r2.getDistanceToUser());
-                    }
-                });
-
-                // 4. UPDATE THE UI
-                // Tell your RecyclerView adapter that the data order has changed!
-                // myAdapter.notifyDataSetChanged();
-
-                System.out.println("Restaurants sorted by distance!");
-
-            } else {
-                System.out.println("Could not get location. Loading default order.");
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                searchQuery = (s == null) ? "" : s.toString().trim();
+                applyFiltersAndRefresh();
             }
         });
 
-         */
+        // Mood button opens sheet
+        findViewById(R.id.ivMood).setOnClickListener(v -> showMoodSheet());
 
-        adapter = new RestaurantAdapter(restaurants, r -> {
-            Intent i = new Intent(this, RestaurantDetailsActivity.class);
-            i.putExtra("restaurantId", r.id);
-            startActivity(i);
-        });
-        rv.setAdapter(adapter);
+        // Show mood sheet once on first entry
+        if (!sp.getBoolean("mood_chosen_once", false)) {
+            showMoodSheet();
+        } else {
+            selectedMood = sp.getString("mood_value", null);
+        }
 
-        loadRestaurants();
+        // Bottom nav
+        setupBottomNav();
+
+        // Load data
+        loadRestaurantsFromFirestore();
     }
 
-    private void loadRestaurants() {
+    private void setupBottomNav() {
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+        bottomNav.setSelectedItemId(R.id.nav_home);
+
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) return true;
+
+            if (id == R.id.nav_reserved) {
+                startActivity(new Intent(this, MyReservationsActivity.class));
+                return true;
+            }
+
+            if (id == R.id.nav_liked) {
+                Toast.makeText(this, "Liked screen (TODO)", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
+            if (id == R.id.nav_account) {
+                Toast.makeText(this, "Account screen (TODO)", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
+            return false;
+        });
+    }
+
+    private void showMoodSheet() {
+        MoodBottomSheetDialogFragment sheet = new MoodBottomSheetDialogFragment();
+        sheet.setListener(mood -> {
+            // mood == null means "skip for now"
+            selectedMood = mood;
+
+            sp.edit()
+                    .putBoolean("mood_chosen_once", true)
+                    .putString("mood_value", mood)
+                    .apply();
+
+            applyFiltersAndRefresh();
+
+            if (mood != null && !mood.trim().isEmpty()) {
+                Toast.makeText(this, "Mood: " + mood, Toast.LENGTH_SHORT).show();
+            }
+        });
+        sheet.show(getSupportFragmentManager(), "mood_sheet");
+    }
+
+    private void loadRestaurantsFromFirestore() {
         FirebaseFirestore.getInstance()
                 .collection("restaurants")
                 .get()
                 .addOnSuccessListener(qs -> {
-                    restaurants.clear();
+                    allRestaurants.clear();
+
                     for (DocumentSnapshot doc : qs.getDocuments()) {
-                        restaurants.add(fromDoc(doc));
+                        Restaurant r = fromDoc(doc);
+                        if (r != null) allRestaurants.add(r);
                     }
 
-                    // ONCE RESTAURANTS ARE LOADED, GET LOCATION AND SORT
-                    LocationHelper locationHelper = new LocationHelper(RestaurantListActivity.this);
-                    locationHelper.getCurrentLocation(userLocation -> {
-                        if (userLocation != null) {
-                            for (Restaurant restaurant : restaurants) {
-                                Location restaurantLocation = new Location("");
-                                restaurantLocation.setLatitude(restaurant.getLatitude());
-                                restaurantLocation.setLongitude(restaurant.getLongitude());
+                    // sort by distance if we have saved user location
+                    Location userLoc = getSavedUserLocationOrNull();
+                    if (userLoc != null) {
+                        computeDistancesAndSort(userLoc, allRestaurants);
+                    }
 
-                                float distanceInMeters = userLocation.distanceTo(restaurantLocation);
-                                restaurant.setDistanceToUser(distanceInMeters);
-                            }
-
-                            // Sort the list
-                            Collections.sort(restaurants, new Comparator<Restaurant>() {
-                                @Override
-                                public int compare(Restaurant r1, Restaurant r2) {
-                                    return Float.compare(r1.getDistanceToUser(), r2.getDistanceToUser());
-                                }
-                            });
-                        }
-
-                        // Tell the adapter to update the screen!
-                        adapter.notifyDataSetChanged();
-                    });
+                    applyFiltersAndRefresh();
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading restaurants", e);
-                    Toast.makeText(this, "Error loading restaurants", Toast.LENGTH_SHORT).show();
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to load restaurants", Toast.LENGTH_SHORT).show()
+                );
+    }
+    private void loadFavoritesIntoAdapter() {
+        var user = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        String uid = user.getUid();
+
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("favorites")
+                .document(uid)
+                .collection("items")
+                .get()
+                .addOnSuccessListener(qs -> {
+                    java.util.Set<String> ids = new java.util.HashSet<>();
+                    for (com.google.firebase.firestore.DocumentSnapshot d : qs.getDocuments()) {
+                        ids.add(d.getId()); // doc id = restaurantId
+                    }
+                    adapter.setFavoriteIds(ids);
                 });
     }
 
-    private Restaurant fromDoc(DocumentSnapshot doc) {
+    private void applyFiltersAndRefresh() {
+        shownRestaurants.clear();
+
+        for (Restaurant r : allRestaurants) {
+            if (!passesMood(r)) continue;
+            if (!passesSearch(r)) continue;
+            shownRestaurants.add(r);
+        }
+
+        adapter.notifyDataSetChanged();
+    }
+
+    private boolean passesSearch(@NonNull Restaurant r) {
+        if (searchQuery == null || searchQuery.isEmpty()) return true;
+
+        String q = searchQuery.toLowerCase();
+        String name = (r.getName() == null) ? "" : r.getName().toLowerCase();
+        String addr = (r.getAddress() == null) ? "" : r.getAddress().toLowerCase();
+
+        return name.contains(q) || addr.contains(q);
+    }
+
+    private boolean passesMood(@NonNull Restaurant r) {
+        if (selectedMood == null || selectedMood.trim().isEmpty()) return true;
+
+        List<String> moods = r.getMoods();
+        if (moods == null) return false;
+
+        // match exact string (recommended: keep values consistent between popup & Firestore)
+        for (String m : moods) {
+            if (m != null && m.equalsIgnoreCase(selectedMood)) return true;
+        }
+        return false;
+    }
+
+    @Nullable
+    private Location getSavedUserLocationOrNull() {
+        if (!sp.getBoolean("location_set", false)) return null;
+
+        float lat = sp.getFloat("location_lat", 0f);
+        float lng = sp.getFloat("location_lng", 0f);
+
+        if (lat == 0f && lng == 0f) return null;
+
+        Location user = new Location("saved");
+        user.setLatitude(lat);
+        user.setLongitude(lng);
+        return user;
+    }
+
+    private void computeDistancesAndSort(@NonNull Location user, @NonNull List<Restaurant> list) {
+        for (Restaurant r : list) {
+            double rLat = r.getLatitude();
+            double rLng = r.getLongitude();
+
+            if (rLat == 0.0 && rLng == 0.0) {
+                r.setDistanceToUser(Float.MAX_VALUE);
+                continue;
+            }
+
+            Location rl = new Location("restaurant");
+            rl.setLatitude(rLat);
+            rl.setLongitude(rLng);
+
+            r.setDistanceToUser(user.distanceTo(rl));
+        }
+
+        Collections.sort(list, (a, b) -> Float.compare(a.getDistanceToUser(), b.getDistanceToUser()));
+    }
+
+    @Nullable
+    private Restaurant fromDoc(@NonNull DocumentSnapshot doc) {
         String id = doc.getId();
+
         String name = doc.getString("name");
         String address = doc.getString("address");
         String description = doc.getString("description");
 
         Restaurant r = new Restaurant(id, name, address, description);
 
-        // Fetch coordinates from your GeoPoint field named "numAddress"
-        com.google.firebase.firestore.GeoPoint geoPoint = doc.getGeoPoint("numAddress");
-
-        if (geoPoint != null) {
-            // GeoPoint automatically splits the latitude and longitude for us!
-            r.setLatitude(geoPoint.getLatitude());
-            r.setLongitude(geoPoint.getLongitude());
+        // GeoPoint -> lat/lng
+        GeoPoint gp = doc.getGeoPoint("numAddress");
+        if (gp != null) {
+            r.setLatitude(gp.getLatitude());
+            r.setLongitude(gp.getLongitude());
         }
+
+        // moods array
+        List<String> moods = (List<String>) doc.get("moods");
+        r.setMoods(moods);
+
+        // placeId (you said you'll store it)
+        String placeId = doc.getString("placeId");
+        r.setPlaceId(placeId);
 
         return r;
     }
